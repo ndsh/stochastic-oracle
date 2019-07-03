@@ -34,7 +34,17 @@ let hexaNames = [
 
 let silhouette;
 let eyes;
+let eyeY = 0;
+let factor;
 
+let myFont;
+let finished = false;
+
+let firstClick = false;
+
+function preload() {
+  myFont = loadFont('src/f.ttf');
+}
 
 function setup() {
 	createCanvas(960, 520);
@@ -46,7 +56,9 @@ function setup() {
 	grams[index++] = new Gram(index, 0, height/12*4);
 	grams[index++] = new Gram(index, 0, height/12*5);
 
-	textSize(20);
+	textFont(myFont);
+	textSize(10);
+
 
 }
 /*
@@ -64,9 +76,16 @@ function draw() {
 
 	switch(state) {
 		case 0:
+			if(!firstClick) {
+				push();
+
+				text("Click to start the Stochastic Oracle" , width/2-120, height/2);
+				pop();
+			}
 			if(mouseIsPressed && millis() - timer > interval && mouseClicks >= 0) {
+				if(!firstClick) firstClick = true;
 				timer = millis();
-		 		console.log(mouseClicks);
+		 		console.log("click: "+ mouseClicks);
 		 		mouseClicks--;
 		 	}
 			for (let i = 0; i < 6; i++) {
@@ -93,8 +112,9 @@ function draw() {
 				else if(grams[3].darkLine == false 	&& grams[4].darkLine == true 	&& grams[5].darkLine == false) lowerTri = 6;
 				else if(grams[3].darkLine == true 	&& grams[4].darkLine == false 	&& grams[5].darkLine == false) lowerTri = 7;
 				silhouette = loadImage("assets/silhouette/"+ lowerTri +".jpeg");
-				eyes = loadImage("assets/eyes/0.jpg");
-			
+				eyes = loadImage("assets/eyes/e"+ hexagrams[lowerTri][upperTri] % 30 +".png");
+				eyeY = this.random(130, 250);
+				factor = 2.2;
 			}
 			
 		break;
@@ -103,21 +123,24 @@ function draw() {
 			for (let i = 0; i < 6; i++) {
 				grams[i].draw();
 			}
-			text("Hexagram = " + hexagrams[lowerTri][upperTri] , 10, height-60);
-			text("Lower Trigram = " + trigrams[lowerTri] +" ("+ lowerTri +")", 10, height-20);
-			text("Upper Trigram = " + trigrams[upperTri] +" ("+ upperTri +")", 10, height-40);
+			text("Hexagram [ #" + hexagrams[lowerTri][upperTri] + " ]", 20, height-40);
+			text("Upper Trigram is " + trigrams[upperTri] +" [ "+ upperTri +" ]", 20, height-30);
+			text("Lower Trigram is " + trigrams[lowerTri] +" [ "+ lowerTri +" ]", 20, height-20);
 
 			text(hexaNames[ (hexagrams[lowerTri][upperTri] -1)] , width/12*4+20, 40);
 			textSize(10);
 			text(hexaMeanings[ (hexagrams[lowerTri][upperTri] -1)] , width/12*4+20, 60, width/3-40, height);
-			textSize(20);
+			textSize(10);
 
 			image(silhouette, width/3*2, 0, width/3, height);
 			push();
 			blendMode(MULTIPLY);
-
-			image(eyes, width/3*2, this.random()*height);
+			
+			image(eyes, width/3*2.15, eyeY, 533/factor, 226/factor);
 			pop();
+			finished  = true;
+			timer = millis();
+			interval = 2000;
 		break;
 	}
 	push();
@@ -125,6 +148,10 @@ function draw() {
 	noFill();
 	rect(0,0,width,height);
 	pop();
+	if(state == 1 && (millis() - timer > interval)) { 
+		console.log("oracle finished");
+		if(finished) noLoop();
+	}
 }
 
 class Gram {
@@ -149,6 +176,7 @@ class Gram {
 	draw() {
 		push();
 		noStroke();
+		strokeWeight(0);
 		if(this.shuffled) {
 			fill(0);
 		} else fill(255);
@@ -158,7 +186,7 @@ class Gram {
 			push();
 			fill(255);
 			
-			rect( (width/12)*1.7 , this.posY+marginGram+(marginGram/1.5*this.id), (width/12)*0.5, (height/12));
+			rect( (width/12)*1.7 , this.posY+marginGram+(marginGram/1.5*this.id)-2, (width/12)*0.5, (height/12)+2);
 			pop();
 		}
 		pop();
